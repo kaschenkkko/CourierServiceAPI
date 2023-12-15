@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String
-
-from backend.database.options import Base
+from src.database import Base
 
 from .security import pwd_context
 

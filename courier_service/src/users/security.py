@@ -3,8 +3,7 @@ from typing import Dict
 
 from jose import jwt
 from passlib.context import CryptContext
-
-from backend.configs import SECRET_KEY
+from src.configs import SECRET_KEY
 
 ALGORITHM = 'HS256'
 SECRET_KEY = SECRET_KEY

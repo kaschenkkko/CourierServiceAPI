@@ -2,11 +2,10 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
-
-from backend.configs import (DB_HOST, DB_NAME, DB_PORT, POSTGRES_PASSWORD,
-                             POSTGRES_USER)
-from backend.database.options import Base
-from backend.users.models import User
+from src.configs import (DB_HOST, DB_NAME, DB_PORT, POSTGRES_PASSWORD,
+                         POSTGRES_USER)
+from src.database import Base
+from src.users.models import User
 
 config = context.config
 
