@@ -1,0 +1,372 @@
+---
+openapi: 3.1.0
+info:
+  title: Courier Service API
+  description: Прототип API сервиса курьерской доставки.
+  version: 0.1.0
+paths:
+  "/api/v1/users":
+    post:
+      tags:
+      - Авторизация
+      summary: Регистрация пользователя
+      description: Регистрация пользователя.
+      operationId: register_user_api_v1_users_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/RequestUserPyd"
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ResponseUserPyd"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/api/v1/token":
+    post:
+      tags:
+      - Авторизация
+      summary: Получение токена
+      description: Получение токена.
+      operationId: login_for_access_token_api_v1_token_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CreateTokenPyd"
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TokenPyd"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/api/v1/orders":
+    get:
+      tags:
+      - Пользователи
+      summary: Все заказы пользователя
+      description: Все заказы пользователя.
+      operationId: get_all_user_orders_api_v1_orders_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  "$ref": "#/components/schemas/BaseOrdersPyd"
+                type: array
+                title: Response Get All User Orders Api V1 Orders Get
+      security:
+      - OAuth2PasswordBearer: []
+    post:
+      tags:
+      - Пользователи
+      summary: Сделать заказ из ресторана
+      description: Сделать заказ из ресторана.
+      operationId: create_order_api_v1_orders_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/RequestCreateOrderPyd"
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ResponseCreateOrderPyd"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+      security:
+      - OAuth2PasswordBearer: []
+  "/api/v1/shipping_cost/{restaurant_id}":
+    get:
+      tags:
+      - Пользователи
+      summary: Расчёт стоимости доставки
+      description: Расчёт стоимости доставки из выбранного ресторана.
+      operationId: shipping_cost_api_v1_shipping_cost__restaurant_id__get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          description: ID ресторана
+          title: Restaurant Id
+        description: ID ресторана
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ShippingCostPyd"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/api/v1/active_orders":
+    get:
+      tags:
+      - Пользователи
+      summary: Активные заказы
+      description: |-
+        Информация об активных заказах пользователя. Статус заказа
+        находится в состоянии «Поиск курьера» или «В пути».
+      operationId: active_orders_api_v1_active_orders_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  "$ref": "#/components/schemas/BaseOrdersPyd"
+                type: array
+                title: Response Active Orders Api V1 Active Orders Get
+      security:
+      - OAuth2PasswordBearer: []
+components:
+  schemas:
+    BaseOrdersPyd:
+      properties:
+        id:
+          type: integer
+          title: Id
+          description: ID объекта в БД
+        status:
+          type: string
+          title: Status
+          description: Статус заказа
+        start_time:
+          type: string
+          format: date-time
+          title: Start Time
+          description: Время создания заказа
+        restaurant_id:
+          type: integer
+          title: Restaurant Id
+          description: ID ресторана, из которого сделан заказ
+      type: object
+      required:
+      - id
+      - status
+      - start_time
+      - restaurant_id
+      title: BaseOrdersPyd
+    CreateTokenPyd:
+      properties:
+        phone_number:
+          type: string
+          title: Phone Number
+          description: Телефон пользователя
+        password:
+          type: string
+          title: Password
+          description: Пароль пользователя
+      type: object
+      required:
+      - phone_number
+      - password
+      title: CreateTokenPyd
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            "$ref": "#/components/schemas/ValidationError"
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    RequestCreateOrderPyd:
+      properties:
+        restaurant_id:
+          type: integer
+          title: Restaurant Id
+          description: ID ресторана
+      type: object
+      required:
+      - restaurant_id
+      title: RequestCreateOrderPyd
+      description: Получаем ID ресторана для создания заказа или расчёта стоимости
+        доставки.
+    RequestUserPyd:
+      properties:
+        phone_number:
+          type: string
+          title: Phone Number
+          description: Телефон пользователя
+        name:
+          type: string
+          title: Name
+          description: Имя пользователя
+        surname:
+          type: string
+          title: Surname
+          description: Фамилия пользователя
+        password:
+          type: string
+          title: Password
+          description: Пароль пользователя
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Город пользователя
+          default: Тюмень
+        street:
+          type: string
+          title: Street
+          description: Улица пользователя
+        house_number:
+          type: string
+          title: House Number
+          description: Номер дома пользователя
+      type: object
+      required:
+      - phone_number
+      - name
+      - surname
+      - password
+      - street
+      - house_number
+      title: RequestUserPyd
+    ResponseCreateOrderPyd:
+      properties:
+        shipping_cost:
+          type: integer
+          title: Shipping Cost
+          description: Стоимость доставки из ресторана
+        id:
+          type: integer
+          title: Id
+          description: ID объекта в БД
+        status:
+          type: string
+          title: Status
+          description: Статус заказа
+        start_time:
+          type: string
+          format: date-time
+          title: Start Time
+          description: Время создания заказа
+        restaurant_id:
+          type: integer
+          title: Restaurant Id
+          description: ID ресторана, из которого сделан заказ
+      type: object
+      required:
+      - shipping_cost
+      - id
+      - status
+      - start_time
+      - restaurant_id
+      title: ResponseCreateOrderPyd
+    ResponseUserPyd:
+      properties:
+        id:
+          type: integer
+          title: Id
+          description: ID объекта в БД
+        name:
+          type: string
+          title: Name
+          description: Имя пользователя
+        surname:
+          type: string
+          title: Surname
+          description: Фамилия пользователя
+        phone_number:
+          type: string
+          title: Phone Number
+          description: Телефон пользователя
+      type: object
+      required:
+      - id
+      - name
+      - surname
+      - phone_number
+      title: ResponseUserPyd
+    ShippingCostPyd:
+      properties:
+        shipping_cost:
+          type: integer
+          title: Shipping Cost
+          description: Стоимость доставки из ресторана
+      type: object
+      required:
+      - shipping_cost
+      title: ShippingCostPyd
+    TokenPyd:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+          description: Токен
+        token_type:
+          type: string
+          title: Token Type
+          description: Тип токена
+      type: object
+      required:
+      - access_token
+      - token_type
+      title: TokenPyd
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    OAuth2PasswordBearer:
+      type: oauth2
+      flows:
+        password:
+          scopes: {}
+          tokenUrl: token
