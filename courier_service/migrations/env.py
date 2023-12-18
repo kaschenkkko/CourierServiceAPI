@@ -5,6 +5,7 @@ from sqlalchemy import engine_from_config, pool
 from src.configs import (DB_HOST, DB_NAME, DB_PORT, POSTGRES_PASSWORD,
                          POSTGRES_USER)
 from src.database import Base
+from src.delivery.models import Courier, Order, Restaurant
 from src.users.models import User
 
 config = context.config
