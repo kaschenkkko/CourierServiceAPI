@@ -21,7 +21,8 @@ class Restaurant(Base, AddressMixin):
         comment='Примерное время доставки заказа/в минутах'
     )
 
-    orders = relationship('Order', back_populates='restaurant')
+    orders = relationship('Order', back_populates='restaurant',
+                          lazy='selectin', order_by='Order.id.desc()')
 
 
 class Courier(Base, UserDataMixin):

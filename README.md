@@ -4,6 +4,9 @@
   <img src="https://img.shields.io/badge/FastAPI-0.105.0-F8F8FF?style=for-the-badge&logo=FastAPI&logoColor=20B2AA">
 </div>
 
+# Документация API
+Courier Service - [API redoc](https://clownvkkaschenko.github.io/CourierServiceAPI/)
+
 Необходимо разработать прототип API сервиса курьерской доставки.
 
 ## Что должен включать в себя сервис:

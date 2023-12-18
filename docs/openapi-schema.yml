@@ -16,7 +16,7 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/RequestUserPyd"
+              "$ref": "#/components/schemas/CreateUserPyd"
         required: true
       responses:
         '200':
@@ -50,20 +50,20 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/TokenPyd"
+                "$ref": "#/components/schemas/ResponseTokenPyd"
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/HTTPValidationError"
-  "/api/v1/orders":
+  "/api/v1/users/orders":
     get:
       tags:
       - Пользователи
       summary: Все заказы пользователя
       description: Все заказы пользователя.
-      operationId: get_all_user_orders_api_v1_orders_get
+      operationId: get_all_user_orders_api_v1_users_orders_get
       responses:
         '200':
           description: Successful Response
@@ -71,9 +71,9 @@ paths:
             application/json:
               schema:
                 items:
-                  "$ref": "#/components/schemas/BaseOrdersPyd"
+                  "$ref": "#/components/schemas/BaseOrderPyd"
                 type: array
-                title: Response Get All User Orders Api V1 Orders Get
+                title: Response Get All User Orders Api V1 Users Orders Get
       security:
       - OAuth2PasswordBearer: []
     post:
@@ -81,12 +81,12 @@ paths:
       - Пользователи
       summary: Сделать заказ из ресторана
       description: Сделать заказ из ресторана.
-      operationId: create_order_api_v1_orders_post
+      operationId: new_order_api_v1_users_orders_post
       requestBody:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/RequestCreateOrderPyd"
+              "$ref": "#/components/schemas/UserCreateOrderPyd"
         required: true
       responses:
         '200':
@@ -94,7 +94,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/ResponseCreateOrderPyd"
+                "$ref": "#/components/schemas/ResponseUserCreateOrderPyd"
         '422':
           description: Validation Error
           content:
@@ -134,15 +134,15 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/HTTPValidationError"
-  "/api/v1/active_orders":
+  "/api/v1/users/active_orders":
     get:
       tags:
       - Пользователи
-      summary: Активные заказы
+      summary: Активные заказы пользователя
       description: |-
         Информация об активных заказах пользователя. Статус заказа
         находится в состоянии «Поиск курьера» или «В пути».
-      operationId: active_orders_api_v1_active_orders_get
+      operationId: active_orders_api_v1_users_active_orders_get
       responses:
         '200':
           description: Successful Response
@@ -150,14 +150,116 @@ paths:
             application/json:
               schema:
                 items:
-                  "$ref": "#/components/schemas/BaseOrdersPyd"
+                  "$ref": "#/components/schemas/BaseOrderPyd"
                 type: array
-                title: Response Active Orders Api V1 Active Orders Get
+                title: Response Active Orders Api V1 Users Active Orders Get
       security:
       - OAuth2PasswordBearer: []
+  "/api/v1/restaurants":
+    post:
+      tags:
+      - Рестораны
+      summary: Создать ресторан
+      description: Создать ресторан.
+      operationId: create_restaurant_api_v1_restaurants_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CreateRestaurantPyd"
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ResponseRestaurantPyd"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+      security:
+      - OAuth2PasswordBearer: []
+  "/api/v1/restaurants/{restaurant_id}/orders":
+    get:
+      tags:
+      - Рестораны
+      summary: Все заказы из выбранного ресторана
+      description: Все заказы ресторана.
+      operationId: get_all_restaurant_orders_api_v1_restaurants__restaurant_id__orders_get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          description: ID ресторана
+          title: Restaurant Id
+        description: ID ресторана
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/SummaryRestaurantOrderPyd"
+                title: Response Get All Restaurant Orders Api V1 Restaurants  Restaurant
+                  Id  Orders Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/api/v1/restaurants/{restaurant_id}/orders/{order_id}":
+    get:
+      tags:
+      - Рестораны
+      summary: Подробная информация об выбранном заказе
+      description: Подробная информация об выбранном заказе.
+      operationId: get_restaurant_order_api_v1_restaurants__restaurant_id__orders__order_id__get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          description: ID ресторана
+          title: Restaurant Id
+        description: ID ресторана
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          description: ID заказа
+          title: Order Id
+        description: ID заказа
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DetailedRestaurantOrderPyd"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
 components:
   schemas:
-    BaseOrdersPyd:
+    BaseOrderPyd:
       properties:
         id:
           type: integer
@@ -182,7 +284,70 @@ components:
       - status
       - start_time
       - restaurant_id
-      title: BaseOrdersPyd
+      title: BaseOrderPyd
+      description: |-
+        Pydantic модель с базовыми полями для информации о заказе.
+
+        Fields:
+            - id: int
+            - status: int
+            - start_time: datetime
+            - restaurant_id: int
+    CreateRestaurantPyd:
+      properties:
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Город
+          default: Тюмень
+        street:
+          type: string
+          title: Street
+          description: Улица
+        house_number:
+          type: string
+          title: House Number
+          description: Номер дома
+        name:
+          type: string
+          title: Name
+          description: Название ресторана
+        opening_time:
+          type: string
+          format: time
+          title: Opening Time
+          description: Время открытия ресторана
+        closing_time:
+          type: string
+          format: time
+          title: Closing Time
+          description: Время закрытия ресторана
+        duration_delivery:
+          type: integer
+          title: Duration Delivery
+          description: Примерное время доставки заказа/в минутах
+      type: object
+      required:
+      - street
+      - house_number
+      - name
+      - opening_time
+      - closing_time
+      - duration_delivery
+      title: CreateRestaurantPyd
+      description: |-
+        Pydantic модель для создания ресторана.
+
+        Fields:
+            - name: str
+            - opening_time: time
+            - closing_time: time
+            - duration_delivery: int
+            - city: Optional[str]
+            - street: str
+            - house_number: str
     CreateTokenPyd:
       properties:
         phone_number:
@@ -198,29 +363,24 @@ components:
       - phone_number
       - password
       title: CreateTokenPyd
-    HTTPValidationError:
+      description: Pydantic модель для создания токена.
+    CreateUserPyd:
       properties:
-        detail:
-          items:
-            "$ref": "#/components/schemas/ValidationError"
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
-    RequestCreateOrderPyd:
-      properties:
-        restaurant_id:
-          type: integer
-          title: Restaurant Id
-          description: ID ресторана
-      type: object
-      required:
-      - restaurant_id
-      title: RequestCreateOrderPyd
-      description: Получаем ID ресторана для создания заказа или расчёта стоимости
-        доставки.
-    RequestUserPyd:
-      properties:
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Город
+          default: Тюмень
+        street:
+          type: string
+          title: Street
+          description: Улица
+        house_number:
+          type: string
+          title: House Number
+          description: Номер дома
         phone_number:
           type: string
           title: Phone Number
@@ -237,31 +397,179 @@ components:
           type: string
           title: Password
           description: Пароль пользователя
+      type: object
+      required:
+      - street
+      - house_number
+      - phone_number
+      - name
+      - surname
+      - password
+      title: CreateUserPyd
+      description: |-
+        Pydantic модель для регистрации пользователя.
+
+        Fields:
+            - city: Optional[str]
+            - street: str
+            - house_number: str
+            - phone_number: str
+            - name: str
+            - surname: str
+            - password: str
+    DetailedRestaurantOrderPyd:
+      properties:
+        id:
+          type: integer
+          title: Id
+          description: ID объекта в БД
+        status:
+          type: string
+          title: Status
+          description: Статус заказа
+        start_time:
+          type: string
+          format: date-time
+          title: Start Time
+          description: Время создания заказа
+        restaurant_id:
+          type: integer
+          title: Restaurant Id
+          description: ID ресторана, из которого сделан заказ
+        end_time:
+          type: string
+          format: date-time
+          title: End Time
+          description: Время завершения доставки
+        courier:
+          anyOf:
+          - "$ref": "#/components/schemas/ResponseUserPyd"
+          - type: 'null'
+          description: Курьер
+        user:
+          allOf:
+          - "$ref": "#/components/schemas/DetailedUserInfoPyd"
+          description: Пользователь который сделал заказ
+      type: object
+      required:
+      - id
+      - status
+      - start_time
+      - restaurant_id
+      - end_time
+      - user
+      title: DetailedRestaurantOrderPyd
+      description: |-
+        Pydantic модель с подробной информацией о заказе ресторана.
+
+        Fields:
+            - id: int
+            - status: int
+            - start_time: datetime
+            - restaurant_id: int
+            - end_time: datetime
+            - courier: Optional[ResponseUserPyd]
+            - user: DetailedUserInfoPyd
+    DetailedUserInfoPyd:
+      properties:
         city:
           anyOf:
           - type: string
           - type: 'null'
           title: City
-          description: Город пользователя
+          description: Город
           default: Тюмень
         street:
           type: string
           title: Street
-          description: Улица пользователя
+          description: Улица
         house_number:
           type: string
           title: House Number
-          description: Номер дома пользователя
+          description: Номер дома
+        phone_number:
+          type: string
+          title: Phone Number
+          description: Телефон пользователя
+        name:
+          type: string
+          title: Name
+          description: Имя пользователя
+        surname:
+          type: string
+          title: Surname
+          description: Фамилия пользователя
+        id:
+          type: integer
+          title: Id
+          description: ID объекта в БД
       type: object
       required:
+      - street
+      - house_number
       - phone_number
       - name
       - surname
-      - password
-      - street
-      - house_number
-      title: RequestUserPyd
-    ResponseCreateOrderPyd:
+      - id
+      title: DetailedUserInfoPyd
+      description: |-
+        Pydantic модель для вывода  подробной информации о пользователе.
+
+        Fields:
+            - id: int
+            - city: Optional[str]
+            - street: str
+            - house_number: str
+            - phone_number: str
+            - name: str
+            - surname: str
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            "$ref": "#/components/schemas/ValidationError"
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ResponseRestaurantPyd:
+      properties:
+        id:
+          type: integer
+          title: Id
+          description: ID объекта в БД
+        name:
+          type: string
+          title: Name
+          description: Название ресторана
+      type: object
+      required:
+      - id
+      - name
+      title: ResponseRestaurantPyd
+      description: |-
+        Pydantic модель для вывода информации о ресторане, после его создания.
+
+        Fields:
+            - id: int
+            - name: int
+    ResponseTokenPyd:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+          description: Токен
+        token_type:
+          type: string
+          title: Token Type
+          description: Тип токена
+      type: object
+      required:
+      - access_token
+      - token_type
+      title: ResponseTokenPyd
+      description: Pydantic модель для вывода токена.
+    ResponseUserCreateOrderPyd:
       properties:
         shipping_cost:
           type: integer
@@ -291,13 +599,22 @@ components:
       - status
       - start_time
       - restaurant_id
-      title: ResponseCreateOrderPyd
+      title: ResponseUserCreateOrderPyd
+      description: |-
+        Pydantic модель для вывода информации о заказе, после его создания.
+
+        Fields:
+            - id: int
+            - status: int
+            - start_time: datetime
+            - restaurant_id: int
+            - shipping_cost: int
     ResponseUserPyd:
       properties:
-        id:
-          type: integer
-          title: Id
-          description: ID объекта в БД
+        phone_number:
+          type: string
+          title: Phone Number
+          description: Телефон пользователя
         name:
           type: string
           title: Name
@@ -306,17 +623,25 @@ components:
           type: string
           title: Surname
           description: Фамилия пользователя
-        phone_number:
-          type: string
-          title: Phone Number
-          description: Телефон пользователя
+        id:
+          type: integer
+          title: Id
+          description: ID объекта в БД
       type: object
       required:
-      - id
+      - phone_number
       - name
       - surname
-      - phone_number
+      - id
       title: ResponseUserPyd
+      description: |-
+        Pydantic модель для вывода информации о пользователе.
+
+        Fields:
+            - id: int
+            - phone_number: str
+            - name: str
+            - surname: str
     ShippingCostPyd:
       properties:
         shipping_cost:
@@ -327,21 +652,73 @@ components:
       required:
       - shipping_cost
       title: ShippingCostPyd
-    TokenPyd:
+      description: |-
+        Pydantic модель для расчёта стоимости доставки.
+
+        Fields:
+            - shipping_cost: int
+    SummaryRestaurantOrderPyd:
       properties:
-        access_token:
+        id:
+          type: integer
+          title: Id
+          description: ID объекта в БД
+        status:
           type: string
-          title: Access Token
-          description: Токен
-        token_type:
+          title: Status
+          description: Статус заказа
+        start_time:
           type: string
-          title: Token Type
-          description: Тип токена
+          format: date-time
+          title: Start Time
+          description: Время создания заказа
+        restaurant_id:
+          type: integer
+          title: Restaurant Id
+          description: ID ресторана, из которого сделан заказ
+        courier_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Courier Id
+          description: ID курьера
+        user_id:
+          type: integer
+          title: User Id
+          description: ID пользователя, который сделал заказ
       type: object
       required:
-      - access_token
-      - token_type
-      title: TokenPyd
+      - id
+      - status
+      - start_time
+      - restaurant_id
+      - user_id
+      title: SummaryRestaurantOrderPyd
+      description: |-
+        Pydantic модель с краткой информацией о заказах ресторана.
+
+        Fields:
+            - id: int
+            - status: int
+            - start_time: datetime
+            - restaurant_id: int
+            - courier_id: Optional[int]
+            - user_id: int
+    UserCreateOrderPyd:
+      properties:
+        restaurant_id:
+          type: integer
+          title: Restaurant Id
+          description: ID ресторана
+      type: object
+      required:
+      - restaurant_id
+      title: UserCreateOrderPyd
+      description: |-
+        Pydantic модель  для создания заказа.
+
+        Fields:
+            - restaurant_id: int
     ValidationError:
       properties:
         loc:

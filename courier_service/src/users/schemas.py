@@ -1,54 +1,86 @@
 """Pydantic models."""
 
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 
-class RequestUserPyd(BaseModel):
+class CreateTokenPyd(BaseModel):
+    """Pydantic модель для создания токена."""
+
     phone_number: str = Field(description='Телефон пользователя')
-    name: str = Field(description='Имя пользователя')
-    surname: str = Field(description='Фамилия пользователя')
     password: str = Field(description='Пароль пользователя')
-    city: Optional[str] = Field('Тюмень', description='Город пользователя')
-    street: str = Field(description='Улица пользователя')
-    house_number: str = Field(description='Номер дома пользователя')
 
 
-class ResponseUserPyd(BaseModel):
-    id: int = Field(description='ID объекта в БД')
-    name: str = Field(description='Имя пользователя')
-    surname: str = Field(description='Фамилия пользователя')
-    phone_number: str = Field(description='Телефон пользователя')
+class ResponseTokenPyd(BaseModel):
+    """Pydantic модель для вывода токена."""
 
-
-class TokenPyd(BaseModel):
     access_token: str = Field(description='Токен')
     token_type: str = Field(description='Тип токена')
 
 
-class CreateTokenPyd(BaseModel):
+class BaseAddressPyd(BaseModel):
+    """Pydantic модель с базовыми полями для адреса.
+
+    Fields:
+        - city: Optional[str]
+        - street: str
+        - house_number: str
+    """
+
+    city: Optional[str] = Field('Тюмень', description='Город')
+    street: str = Field(description='Улица')
+    house_number: str = Field(description='Номер дома')
+
+
+class BaseUserDataPyd(BaseModel):
+    """Pydantic модель с базовыми полями для пользователя.
+
+    Fields:
+        - phone_number: str
+        - name: str
+        - surname: str
+    """
+
     phone_number: str = Field(description='Телефон пользователя')
+    name: str = Field(description='Имя пользователя')
+    surname: str = Field(description='Фамилия пользователя')
+
+
+class CreateUserPyd(BaseUserDataPyd, BaseAddressPyd):
+    """Pydantic модель для регистрации пользователя.
+
+    Fields:
+        - city: Optional[str]
+        - street: str
+        - house_number: str
+        - phone_number: str
+        - name: str
+        - surname: str
+        - password: str
+    """
+
     password: str = Field(description='Пароль пользователя')
 
 
-class ShippingCostPyd(BaseModel):
-    shipping_cost: int = Field(description='Стоимость доставки из ресторана')
+class ResponseUserPyd(BaseUserDataPyd):
+    """Pydantic модель для вывода информации о пользователе.
 
+    Fields:
+        - id: int
+        - phone_number: str
+        - name: str
+        - surname: str
+    """
 
-class BaseOrdersPyd(BaseModel):
     id: int = Field(description='ID объекта в БД')
-    status: str = Field(description='Статус заказа')
-    start_time: datetime = Field(description='Время создания заказа')
-    restaurant_id: int = Field(description='ID ресторана, из которого сделан заказ')
 
 
-class ResponseCreateOrderPyd(BaseOrdersPyd, ShippingCostPyd):
-    pass
+class UserCreateOrderPyd(BaseModel):
+    """Pydantic модель  для создания заказа.
 
-
-class RequestCreateOrderPyd(BaseModel):
-    """Получаем ID ресторана для создания заказа или расчёта стоимости доставки."""
+    Fields:
+        - restaurant_id: int
+    """
 
     restaurant_id: int = Field(description='ID ресторана')

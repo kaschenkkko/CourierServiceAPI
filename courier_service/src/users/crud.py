@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.delivery.models import Order, Restaurant
+from src.delivery.models import Order
 
 from .models import User
 from .security import get_password_hash
@@ -34,7 +34,7 @@ async def create_user(
         name=name,
         surname=surname,
         phone_number=phone_number,
-        )
+    )
 
     try:
         db.add(new_user)
@@ -65,7 +65,7 @@ async def get_user(db: AsyncSession, phone_number: str) -> Optional[User]:
     return user.scalars().one_or_none()
 
 
-async def post_order(db: AsyncSession, user_id: int, restaurant_id: int) -> Order:
+async def create_order(db: AsyncSession, user_id: int, restaurant_id: int) -> Order:
     """Создаём новый объект в таблице SQLAlchemy «Order».
 
     Args:
@@ -84,21 +84,6 @@ async def post_order(db: AsyncSession, user_id: int, restaurant_id: int) -> Orde
     await db.refresh(new_order)
 
     return new_order
-
-
-async def get_restaurant_by_id(db: AsyncSession, id: int) -> Optional[Restaurant]:
-    """Получаем один объект из таблицы SQLAlchemy «Restaurant», по значению ID.
-
-    Args:
-        - db (AsyncSession): Асинхронная сессия для подключения к БД.
-        - id (int): ID объекта модели.
-
-    Returns:
-        - Optional[Restaurant]: Объект заказа, если найден, иначе None.
-    """
-
-    restaurant = await db.execute(select(Restaurant).filter(Restaurant.id == id))
-    return restaurant.scalars().one_or_none()
 
 
 async def get_active_orders(db: AsyncSession, current_user: User) -> Optional[List[Order]]:
