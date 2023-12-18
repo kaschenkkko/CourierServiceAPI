@@ -94,12 +94,12 @@ class DetailedRestaurantOrderPyd(BaseOrderPyd):
         - status: int
         - start_time: datetime
         - restaurant_id: int
-        - end_time: datetime
+        - end_time: Optional[datetime]
         - courier: Optional[ResponseUserPyd]
         - user: DetailedUserInfoPyd
     """
 
-    end_time: datetime = Field(description='Время завершения доставки')
+    end_time: Optional[datetime] = Field(None, description='Время завершения доставки')
     courier: Optional[ResponseUserPyd] = Field(None, description='Курьер')
     user: DetailedUserInfoPyd = Field(description='Пользователь который сделал заказ')
 

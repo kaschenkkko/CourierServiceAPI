@@ -74,13 +74,3 @@ class ResponseUserPyd(BaseUserDataPyd):
     """
 
     id: int = Field(description='ID объекта в БД')
-
-
-class UserCreateOrderPyd(BaseModel):
-    """Pydantic модель  для создания заказа.
-
-    Fields:
-        - restaurant_id: int
-    """
-
-    restaurant_id: int = Field(description='ID ресторана')

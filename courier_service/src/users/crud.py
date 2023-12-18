@@ -50,7 +50,7 @@ async def create_user(
     return new_user
 
 
-async def get_user(db: AsyncSession, phone_number: str) -> Optional[User]:
+async def get_user_by_phone_number(db: AsyncSession, phone_number: str) -> Optional[User]:
     """Получаем пользователя из базы данных, по полю «phone_number».
 
     Args:
@@ -77,11 +77,18 @@ async def create_order(db: AsyncSession, user_id: int, restaurant_id: int) -> Or
         - Order: Объект заказа.
     """
 
-    new_order = Order(user_id=user_id, restaurant_id=restaurant_id)
+    try:
+        new_order = Order(user_id=user_id, restaurant_id=restaurant_id)
 
-    db.add(new_order)
-    await db.commit()
-    await db.refresh(new_order)
+        db.add(new_order)
+        await db.commit()
+        await db.refresh(new_order)
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Ресторан с таким ID не найден.',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
 
     return new_order
 

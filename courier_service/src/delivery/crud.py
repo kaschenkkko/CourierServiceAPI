@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .models import Restaurant
+from .models import Order, Restaurant
 
 
 async def post_restaurant(
@@ -54,3 +54,30 @@ async def get_restaurant_by_id(db: AsyncSession, id: int) -> Optional[Restaurant
 
     restaurant = await db.execute(select(Restaurant).filter(Restaurant.id == id))
     return restaurant.scalars().one_or_none()
+
+
+async def get_order_from_restaurant_by_id(
+        db: AsyncSession,
+        restaurant_id: int,
+        order_id: int,
+) -> Optional[Order]:
+    """
+    Получаем объект из таблицы SQLAlchemy «Order» по полю «id»
+    с определённым полем «restaurant_id»
+
+    Args:
+        - db (AsyncSession): Асинхронная сессия для подключения к БД.
+        - current_user (User): Объект пользователя.
+        - restaurant_id (int): ID ресторана.
+        - order_id (int): ID заказа.
+
+    Returns:
+        - Optional[Order]: Объект заказа, если найден, иначе None.
+    """
+
+    order = await db.execute(
+        select(Order).
+        filter(Order.id == order_id,
+               Order.restaurant_id == restaurant_id)
+    )
+    return order.scalars().one_or_none()

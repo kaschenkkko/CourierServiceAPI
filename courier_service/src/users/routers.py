@@ -9,11 +9,12 @@ from src.delivery.models import Order
 from src.delivery.schemas import (BaseOrderPyd, ResponseUserCreateOrderPyd,
                                   ShippingCostPyd)
 
-from .crud import create_order, create_user, get_active_orders, get_user
+from .crud import (create_order, create_user, get_active_orders,
+                   get_user_by_phone_number)
 from .dependencies import get_current_user
 from .models import User
 from .schemas import (CreateTokenPyd, CreateUserPyd, ResponseTokenPyd,
-                      ResponseUserPyd, UserCreateOrderPyd)
+                      ResponseUserPyd)
 from .security import create_access_token
 
 user_router = APIRouter()
@@ -25,7 +26,7 @@ async def register_user(user: CreateUserPyd, db: AsyncSession = Depends(get_db))
     """Регистрация пользователя."""
 
     user_data = user.dict()
-    db_user = await get_user(db, user.phone_number)
+    db_user = await get_user_by_phone_number(db, user.phone_number)
 
     if db_user:
         raise HTTPException(
@@ -41,7 +42,7 @@ async def register_user(user: CreateUserPyd, db: AsyncSession = Depends(get_db))
 async def login_for_access_token(login_request: CreateTokenPyd, db: AsyncSession = Depends(get_db)):
     """Получение токена."""
 
-    user = await get_user(db, login_request.phone_number)
+    user = await get_user_by_phone_number(db, login_request.phone_number)
 
     if not user or not user.verify_password(login_request.password):
         raise HTTPException(
@@ -73,23 +74,30 @@ async def shipping_cost(
 
     restaurant = await get_restaurant_by_id(db, restaurant_id)
 
+    if restaurant is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Ресторан с таким ID не найден.',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+
     if restaurant.street == current_user.street:
         return {'shipping_cost': 50}
 
     return {'shipping_cost': randrange(200, 500)}
 
 
-@user_router.post('/api/v1/users/orders', response_model=ResponseUserCreateOrderPyd,
+@user_router.post('/api/v1/users/orders/{restaurant_id}', response_model=ResponseUserCreateOrderPyd,
                   summary='Сделать заказ из ресторана', tags=['Пользователи'])
 async def new_order(
-    order: UserCreateOrderPyd,
+    restaurant_id: int = Path(..., description='ID ресторана'),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Сделать заказ из ресторана."""
 
-    order_info = await create_order(db, current_user.id, order.restaurant_id)
-    shipping_cost_value = await shipping_cost(order.restaurant_id, current_user, db)
+    order_info = await create_order(db, current_user.id, restaurant_id)
+    shipping_cost_value = await shipping_cost(restaurant_id, current_user, db)
 
     result = ResponseUserCreateOrderPyd.parse_obj({**order_info.__dict__, **shipping_cost_value})
     return result

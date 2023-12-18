@@ -6,7 +6,7 @@ from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_db
 
-from .crud import get_user
+from .crud import get_user_by_phone_number
 from .models import User
 from .security import ALGORITHM, SECRET_KEY
 
@@ -41,4 +41,4 @@ async def get_current_user(
     except jwt.JWTError:
         raise credentials_exception
 
-    return await get_user(db, phone_number)
+    return await get_user_by_phone_number(db, phone_number)

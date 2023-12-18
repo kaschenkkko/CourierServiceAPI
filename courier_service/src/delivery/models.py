@@ -59,5 +59,5 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey('users.id'), comment='ID пользователя', nullable=False)
 
     restaurant = relationship('Restaurant', back_populates='orders')
-    courier = relationship('Courier', back_populates='orders')
-    user = relationship('User', back_populates='orders')
+    courier = relationship('Courier', back_populates='orders', lazy='selectin')
+    user = relationship('User', back_populates='orders', lazy='selectin')
