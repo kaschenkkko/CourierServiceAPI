@@ -31,7 +31,7 @@ class ResponseRestaurantPyd(BaseModel):
 
     Fields:
         - id: int
-        - name: int
+        - name: str
     """
 
     id: int = Field(description='ID объекта в БД')
@@ -43,7 +43,7 @@ class BaseOrderPyd(BaseModel):
 
     Fields:
         - id: int
-        - status: int
+        - status: str
         - start_time: datetime
         - restaurant_id: int
     """
@@ -59,7 +59,7 @@ class SummaryRestaurantOrderPyd(BaseOrderPyd):
 
     Fields:
         - id: int
-        - status: int
+        - status: str
         - start_time: datetime
         - restaurant_id: int
         - courier_id: Optional[int]
@@ -71,7 +71,7 @@ class SummaryRestaurantOrderPyd(BaseOrderPyd):
 
 
 class DetailedUserInfoPyd(BaseUserDataPyd, BaseAddressPyd):
-    """Pydantic модель для вывода  подробной информации о пользователе.
+    """Pydantic модель для вывода подробной информации о пользователе.
 
     Fields:
         - id: int
@@ -87,11 +87,11 @@ class DetailedUserInfoPyd(BaseUserDataPyd, BaseAddressPyd):
 
 
 class DetailedRestaurantOrderPyd(BaseOrderPyd):
-    """Pydantic модель с подробной информацией о заказе ресторана.
+    """Pydantic модель с подробной информацией о заказе для ресторана.
 
     Fields:
         - id: int
-        - status: int
+        - status: str
         - start_time: datetime
         - restaurant_id: int
         - end_time: Optional[datetime]
@@ -119,7 +119,7 @@ class ResponseUserCreateOrderPyd(BaseOrderPyd, ShippingCostPyd):
 
     Fields:
         - id: int
-        - status: int
+        - status: str
         - start_time: datetime
         - restaurant_id: int
         - shipping_cost: int

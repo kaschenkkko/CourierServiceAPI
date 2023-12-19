@@ -36,7 +36,8 @@ class Courier(Base, UserDataMixin):
         server_default='Без заказа', comment='Статус работы курьера', nullable=False
     )
 
-    orders = relationship('Order', back_populates='courier')
+    orders = relationship('Order', back_populates='courier',
+                          lazy='selectin', order_by='Order.id.desc()')
 
 
 class Order(Base):
@@ -58,6 +59,6 @@ class Order(Base):
     courier_id = Column(Integer, ForeignKey('couriers.id'), comment='ID курьера')
     user_id = Column(Integer, ForeignKey('users.id'), comment='ID пользователя', nullable=False)
 
-    restaurant = relationship('Restaurant', back_populates='orders')
+    restaurant = relationship('Restaurant', back_populates='orders', lazy='selectin')
     courier = relationship('Courier', back_populates='orders', lazy='selectin')
     user = relationship('User', back_populates='orders', lazy='selectin')

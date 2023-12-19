@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from src.database import Base
 from src.delivery.mixins import AddressMixin, UserDataMixin
-from src.delivery.models import Order
 
 from .security import pwd_context
 

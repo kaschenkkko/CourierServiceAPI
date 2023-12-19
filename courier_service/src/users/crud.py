@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.delivery.models import Order
@@ -77,23 +77,22 @@ async def create_order(db: AsyncSession, user_id: int, restaurant_id: int) -> Or
         - Order: Объект заказа.
     """
 
-    try:
-        new_order = Order(user_id=user_id, restaurant_id=restaurant_id)
+    new_order = Order(user_id=user_id, restaurant_id=restaurant_id)
 
+    try:
         db.add(new_order)
         await db.commit()
         await db.refresh(new_order)
     except IntegrityError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Ресторан с таким ID не найден.',
-            headers={'WWW-Authenticate': 'Bearer'},
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Нельзя сделать заказ. Ресторан с таким ID не найден.',
         )
 
     return new_order
 
 
-async def get_active_orders(db: AsyncSession, current_user: User) -> Optional[List[Order]]:
+async def get_active_user_orders(db: AsyncSession, current_user: User) -> Optional[List[Order]]:
     """Все активные заказы пользователя.
 
     Получаем объекты из таблицы SQLAlchemy «Order», у которых
@@ -104,12 +103,14 @@ async def get_active_orders(db: AsyncSession, current_user: User) -> Optional[Li
         - current_user (User): Объект пользователя.
 
     Returns:
-        - Optional[List[Order]]: Список заказов, если найдены, иначе None.
+        - Optional[List[Order]]: Список активных заказов, если найдены, иначе None.
     """
 
     active_orders = await db.execute(
         select(Order).
         filter(Order.user == current_user,
-               Order.status.in_(['В пути', 'Поиск курьера']))
+               Order.status.in_(['В пути', 'Поиск курьера'])
+               ).
+        order_by(desc(Order.id))
     )
     return active_orders.scalars().all()

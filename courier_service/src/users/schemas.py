@@ -1,19 +1,30 @@
 """Pydantic models."""
 
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 
 class CreateTokenPyd(BaseModel):
-    """Pydantic модель для создания токена."""
+    """Pydantic модель для создания токена.
+
+    Fields:
+        - phone_number: str
+        - password: str
+    """
 
     phone_number: str = Field(description='Телефон пользователя')
     password: str = Field(description='Пароль пользователя')
 
 
 class ResponseTokenPyd(BaseModel):
-    """Pydantic модель для вывода токена."""
+    """Pydantic модель для вывода токена.
+
+    Fields:
+        - access_token: str
+        - token_type: str
+    """
 
     access_token: str = Field(description='Токен')
     token_type: str = Field(description='Тип токена')
@@ -74,3 +85,24 @@ class ResponseUserPyd(BaseUserDataPyd):
     """
 
     id: int = Field(description='ID объекта в БД')
+
+
+class DetailedUserOrderPyd(BaseModel):
+    """Pydantic модель с подробной информацией о заказе для пользователя.
+
+    Fields:
+        - id: int
+        - status: str
+        - restaurant_name: str
+        - start_time: datetime
+        - end_time: Optional[datetime]
+        - courier_name: Optional[str]
+        - duration_delivery: int
+    """
+    id: int = Field(description='ID объекта в БД')
+    status: str = Field(description='Статус заказа')
+    restaurant_name: str = Field(description='Название ресторана, из которого сделан заказ')
+    start_time: datetime = Field(description='Время создания заказа')
+    end_time: Optional[datetime] = Field(None, description='Время завершения доставки')
+    courier_name: Optional[str] = Field(None, description='Имя курьера')
+    duration_delivery: int = Field(description='Примерное время доставки заказа/в минутах')
