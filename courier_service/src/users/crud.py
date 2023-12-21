@@ -46,6 +46,10 @@ async def create_user(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='Неверный формат номера телефона.'
             )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Пользователь уже зарегестрирован.'
+        )
 
     return new_user
 

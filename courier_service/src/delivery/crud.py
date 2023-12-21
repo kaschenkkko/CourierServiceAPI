@@ -5,8 +5,9 @@ from fastapi import HTTPException, status
 from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.users.security import get_password_hash
 
-from .models import Order, Restaurant
+from .models import Courier, Order, Restaurant
 
 
 async def post_restaurant(
@@ -49,18 +50,18 @@ async def post_restaurant(
     return new_restaurant
 
 
-async def get_restaurant_by_id(db: AsyncSession, id: int) -> Optional[Restaurant]:
-    """Получаем один объект из таблицы SQLAlchemy «Restaurant», по значению ID.
+async def get_restaurant_by_id(db: AsyncSession, restaurant_id: int) -> Optional[Restaurant]:
+    """Получаем один объект из таблицы SQLAlchemy «Restaurant» по полю «id».
 
     Args:
         - db (AsyncSession): Асинхронная сессия для подключения к БД.
-        - id (int): ID объекта модели.
+        - restaurant_id (int): ID ресторана.
 
     Returns:
         - Optional[Restaurant]: Объект ресторана, если найден, иначе None.
     """
 
-    restaurant = await db.execute(select(Restaurant).filter(Restaurant.id == id))
+    restaurant = await db.execute(select(Restaurant).filter(Restaurant.id == restaurant_id))
     return restaurant.scalars().one_or_none()
 
 
@@ -69,7 +70,6 @@ async def get_order_by_id(db: AsyncSession, order_id: int) -> Optional[Order]:
 
     Args:
         - db (AsyncSession): Асинхронная сессия для подключения к БД.
-        - current_user (User): Объект пользователя.
         - order_id (int): ID заказа.
 
     Returns:
@@ -83,7 +83,7 @@ async def get_order_by_id(db: AsyncSession, order_id: int) -> Optional[Order]:
 async def get_active_restaurant_orders(db: AsyncSession, restaurant_id: int) -> Optional[List[Order]]:
     """Все активные заказы в ресторане.
 
-    Получаем объекты из таблицы SQLAlchemy «Order», у которых
+    Получаем объекты из таблицы SQLAlchemy «Order», для определённого ресторана, у которых
     статус заказа находится в состоянии «Поиск курьера» или «В пути».
 
     Args:
@@ -102,3 +102,104 @@ async def get_active_restaurant_orders(db: AsyncSession, restaurant_id: int) -> 
         order_by(desc(Order.id))
     )
     return active_orders.scalars().all()
+
+
+async def create_courier(
+        db: AsyncSession,
+        password: str,
+        name: str,
+        surname: str,
+        phone_number: str,
+) -> Courier:
+    """Создаём новый объект в таблице SQLAlchemy «Courier».
+
+    Returns:
+        - Courier: Объект курьера.
+    """
+
+    new_courier = Courier(
+        hashed_password=get_password_hash(password),
+        name=name,
+        surname=surname,
+        phone_number=phone_number,
+    )
+
+    try:
+        db.add(new_courier)
+        await db.commit()
+        await db.refresh(new_courier)
+    except IntegrityError as e:
+        if 'check_phone_number' in str(e.orig):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Неверный формат номера телефона.'
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Курьер уже зарегестрирован.'
+        )
+
+    return new_courier
+
+
+async def get_courier_by_phone_number(db: AsyncSession, phone_number: str) -> Optional[Courier]:
+    """Получаем курьера из базы данных, по полю «phone_number».
+
+    Args:
+        - db (AsyncSession): Асинхронная сессия базы данных SQLAlchemy.
+        - phone_number (str): Номер телефона курьера, которого необходимо найти.
+
+    Returns:
+        - Optional[Courier]: Объект пользователя, если найден, иначе None.
+    """
+
+    courier = await db.execute(select(Courier).filter(Courier.phone_number == phone_number))
+    return courier.scalars().one_or_none()
+
+
+async def get_all_available_couriers_orders(db: AsyncSession) -> Optional[List[Order]]:
+    """Все свободные заказы для курьеров, из всех ресторанов.
+
+    Получаем объекты из таблицы SQLAlchemy «Order», у которых
+    статус заказа находится в состоянии «Поиск курьера».
+
+    Args:
+        - db (AsyncSession): Асинхронная сессия для подключения к БД.
+
+    Returns:
+        - Optional[List[Order]]: Список свободных заказов, если найдены, иначе None.
+    """
+
+    active_orders = await db.execute(
+        select(Order).
+        filter(Order.status == 'Поиск курьера').
+        order_by(Order.id)
+    )
+    return active_orders.scalars().all()
+
+
+async def get_all_active_couriers_orders(
+        db: AsyncSession, current_courier: Courier
+) -> Optional[List[Order]]:
+    """Все активные заказы для курьера.
+
+    Получаем объекты из таблицы SQLAlchemy «Order», для текущего курьера,
+    у которых статус заказа находится в состоянии «В пути».
+
+    Args:
+        - current_courier (Courier): Объект курьера.
+        - db (AsyncSession): Асинхронная сессия для подключения к БД.
+
+    Returns:
+        - Optional[List[Order]]: Список активных заказов, если найдены, иначе None.
+    """
+
+    courier_orders = await db.execute(
+        select(Order).
+        filter(
+            Order.courier_id == current_courier.id,
+            Order.status == 'В пути'
+            ).
+        order_by(Order.id)
+    )
+    return courier_orders.scalars().all()

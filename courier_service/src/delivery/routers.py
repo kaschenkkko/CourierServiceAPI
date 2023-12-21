@@ -3,13 +3,20 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_db
-from src.users.dependencies import get_current_user
+from src.users.dependencies import get_current_courier
 from src.users.models import User
+from src.users.schemas import CreateTokenPyd, ResponseTokenPyd, UserInfoPyd
+from src.users.security import create_access_token
 
-from .crud import (get_active_restaurant_orders, get_order_by_id,
+from .crud import (create_courier, get_active_restaurant_orders,
+                   get_all_active_couriers_orders,
+                   get_all_available_couriers_orders,
+                   get_courier_by_phone_number, get_order_by_id,
                    get_restaurant_by_id, post_restaurant)
+from .exceptions import raise_forbidden_if_not_courier
 from .models import Courier, Order, Restaurant
-from .schemas import (CreateRestaurantPyd, DetailedRestaurantOrderPyd,
+from .schemas import (CourierOrdersInfoPyd, CreateCourierPyd,
+                      DetailedRestaurantInfoPyd, DetailedRestaurantOrderPyd,
                       ResponseRestaurantPyd, SummaryRestaurantOrderPyd)
 
 delivery_router = APIRouter()
@@ -18,8 +25,7 @@ delivery_router = APIRouter()
 @delivery_router.post('/api/v1/restaurants', response_model=ResponseRestaurantPyd,
                       summary='Добавить ресторан', tags=['Рестораны'])
 async def create_restaurant(
-    restaurant: CreateRestaurantPyd,
-    current_user: User = Depends(get_current_user),
+    restaurant: DetailedRestaurantInfoPyd,
     db: AsyncSession = Depends(get_db),
 ) -> Restaurant:
 
@@ -32,7 +38,6 @@ async def create_restaurant(
                      response_model=List[SummaryRestaurantOrderPyd],
                      summary='Заказы ресторана', tags=['Рестораны'])
 async def get_restaurant_orders(
-    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     restaurant_id: int = Path(..., description='ID ресторана'),
     active: Optional[str] = Query(None, description='Выводим только активные заказы ресторана.')
@@ -60,7 +65,6 @@ async def get_restaurant_orders(
                      response_model=DetailedRestaurantOrderPyd,
                      summary='Информация о заказе', tags=['Рестораны'])
 async def get_restaurant_order(
-    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     restaurant_id: int = Path(..., description='ID ресторана'),
     order_id: int = Path(..., description='ID заказа'),
@@ -90,3 +94,65 @@ async def get_restaurant_order(
     )
 
     return result
+
+
+@delivery_router.post('/api/v1/couriers', response_model=UserInfoPyd,
+                      summary='Регистрация курьера', tags=['Курьеры'])
+async def register_couriers(
+    courier: CreateCourierPyd,
+    db: AsyncSession = Depends(get_db)
+) -> Courier:
+
+    courier_data = courier.dict()
+
+    return await create_courier(db=db, **courier_data)
+
+
+@delivery_router.post('/api/v1/couriers/token', response_model=ResponseTokenPyd,
+                      summary='Получение токена для курьеров', tags=['Курьеры'])
+async def login_for_courier_access_token(
+    login_request: CreateTokenPyd,
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, str]:
+
+    courier: Optional[Courier] = await get_courier_by_phone_number(db, login_request.phone_number)
+
+    if not courier or not courier.verify_password(login_request.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Неверный номер телефона или пароль.',
+        )
+
+    access_token: str = create_access_token({'sub': courier.phone_number})
+    return {'access_token': access_token, 'token_type': 'Bearer'}
+
+
+@delivery_router.get('/api/v1/couriers/available_orders', response_model=List[CourierOrdersInfoPyd],
+                     summary='Свободные заказы', tags=['Курьеры'])
+async def available_couriers_orders(
+    current_courier: Courier = Depends(get_current_courier),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[List[Order]]:
+    """Выводим список всех заказов, из всех рестаранов, которые могут взять курьеры."""
+
+    raise_forbidden_if_not_courier(current_courier)
+
+    return await get_all_available_couriers_orders(db)
+
+
+@delivery_router.get('/api/v1/couriers/orders/get', response_model=List[CourierOrdersInfoPyd],
+                     summary='Заказы курьера', tags=['Курьеры'])
+async def courier_orders(
+    current_courier: Courier = Depends(get_current_courier),
+    db: AsyncSession = Depends(get_db),
+    all: Optional[str] = Query(None, description='Выводим все заказы курьера.')
+) -> Optional[List[Order]]:
+    """
+    По умолчанию выводятся только активные заказы курьера, у которых статус
+    заказа «В пути». Но вы можете передать параметр запроса «all»,
+    что-бы получить список всех заказов, которые выполнял/выполняет курьер.
+    """
+
+    if all is not None:
+        return current_courier.orders
+    return await get_all_active_couriers_orders(db, current_courier)

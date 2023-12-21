@@ -36,8 +36,7 @@ class Courier(Base, UserDataMixin):
         server_default='Без заказа', comment='Статус работы курьера', nullable=False
     )
 
-    orders = relationship('Order', back_populates='courier',
-                          lazy='selectin', order_by='Order.id.desc()')
+    orders = relationship('Order', back_populates='courier', lazy='selectin')
 
 
 class Order(Base):

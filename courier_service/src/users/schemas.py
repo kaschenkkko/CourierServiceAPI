@@ -14,8 +14,8 @@ class CreateTokenPyd(BaseModel):
         - password: str
     """
 
-    phone_number: str = Field(description='Телефон пользователя')
-    password: str = Field(description='Пароль пользователя')
+    phone_number: str = Field(description='Номер телефона')
+    password: str = Field(description='Пароль для входа')
 
 
 class ResponseTokenPyd(BaseModel):
@@ -45,7 +45,7 @@ class BaseAddressPyd(BaseModel):
 
 
 class BaseUserDataPyd(BaseModel):
-    """Pydantic модель с базовыми полями для пользователя.
+    """Pydantic модель с базовыми полями для пользователя/курьера.
 
     Fields:
         - phone_number: str
@@ -53,9 +53,9 @@ class BaseUserDataPyd(BaseModel):
         - surname: str
     """
 
-    phone_number: str = Field(description='Телефон пользователя')
-    name: str = Field(description='Имя пользователя')
-    surname: str = Field(description='Фамилия пользователя')
+    phone_number: str = Field(description='Номер телефона')
+    name: str = Field(description='Имя')
+    surname: str = Field(description='Фамилия')
 
 
 class CreateUserPyd(BaseUserDataPyd, BaseAddressPyd):
@@ -74,8 +74,8 @@ class CreateUserPyd(BaseUserDataPyd, BaseAddressPyd):
     password: str = Field(description='Пароль пользователя')
 
 
-class ResponseUserPyd(BaseUserDataPyd):
-    """Pydantic модель для вывода информации о пользователе.
+class UserInfoPyd(BaseUserDataPyd):
+    """Pydantic модель для вывода информации о пользователе/курьере.
 
     Fields:
         - id: int
@@ -99,7 +99,7 @@ class DetailedUserOrderPyd(BaseModel):
         - courier_name: Optional[str]
         - duration_delivery: int
     """
-    id: int = Field(description='ID объекта в БД')
+    id: int = Field(description='ID заказа в БД')
     status: str = Field(description='Статус заказа')
     restaurant_name: str = Field(description='Название ресторана, из которого сделан заказ')
     start_time: datetime = Field(description='Время создания заказа')

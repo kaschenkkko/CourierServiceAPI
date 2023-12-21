@@ -14,31 +14,24 @@ from .crud import (create_order, create_user, get_active_user_orders,
 from .dependencies import get_current_user
 from .models import User
 from .schemas import (CreateTokenPyd, CreateUserPyd, DetailedUserOrderPyd,
-                      ResponseTokenPyd, ResponseUserPyd)
+                      ResponseTokenPyd, UserInfoPyd)
 from .security import create_access_token
 
 user_router = APIRouter()
 
 
-@user_router.post('/api/v1/users', response_model=ResponseUserPyd,
-                  summary='Регистрация пользователя', tags=['Авторизация'])
+@user_router.post('/api/v1/users', response_model=UserInfoPyd,
+                  summary='Регистрация пользователя/покупателя', tags=['Пользователи'])
 async def register_user(user: CreateUserPyd, db: AsyncSession = Depends(get_db)) -> User:
 
     user_data = user.dict()
-    db_user: Optional[User] = await get_user_by_phone_number(db, user.phone_number)
-
-    if db_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Пользователь уже зарегестрирован.'
-        )
 
     return await create_user(db=db, **user_data)
 
 
-@user_router.post('/api/v1/token', response_model=ResponseTokenPyd,
-                  summary='Получение токена', tags=['Авторизация'])
-async def login_for_access_token(
+@user_router.post('/api/v1/users/token', response_model=ResponseTokenPyd,
+                  summary='Получение токена для пользователей', tags=['Пользователи'])
+async def login_for_user_access_token(
     login_request: CreateTokenPyd,
     db: AsyncSession = Depends(get_db)
 ) -> Dict[str, str]:
@@ -55,7 +48,7 @@ async def login_for_access_token(
     return {'access_token': access_token, 'token_type': 'Bearer'}
 
 
-@user_router.get('/api/v1/users/orders', response_model=List[BaseOrderPyd],
+@user_router.get('/api/v1/users/orders/get',  response_model=List[BaseOrderPyd],
                  summary='Заказы пользователя', tags=['Пользователи'])
 async def get_user_orders(
     current_user: User = Depends(get_current_user),

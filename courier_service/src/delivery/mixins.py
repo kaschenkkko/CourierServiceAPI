@@ -1,4 +1,5 @@
 from sqlalchemy import CheckConstraint, Column, String
+from src.users.security import pwd_context
 
 
 class AddressMixin:
@@ -22,6 +23,7 @@ class UserDataMixin:
         - name (str): Имя.
         - surname (str): Фамилия.
         - phone_number (str): Номер телефона.
+        - hashed_password (str): Хэш пароля.
 
     Ограничение:
         - Поле phone_number должно соответствовать регулярному выражению,
@@ -31,6 +33,15 @@ class UserDataMixin:
     name = Column(String, nullable=False)
     surname = Column(String, nullable=False)
     phone_number = Column(String, nullable=False, unique=True)
+    hashed_password = Column(String, nullable=False)
+
+    def verify_password(self, password: str) -> bool:
+        """
+        Проверяем соответствие введённого пароля и хэшированного пароля пользователя,
+        хранящегося в базе данных.
+        """
+
+        return pwd_context.verify(password, self.hashed_password)
 
     __table_args__ = (
         CheckConstraint(

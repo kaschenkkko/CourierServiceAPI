@@ -8,8 +8,8 @@ paths:
   "/api/v1/users":
     post:
       tags:
-      - Авторизация
-      summary: Регистрация пользователя
+      - Пользователи
+      summary: Регистрация пользователя/покупателя
       operationId: register_user_api_v1_users_post
       requestBody:
         content:
@@ -23,19 +23,19 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/ResponseUserPyd"
+                "$ref": "#/components/schemas/UserInfoPyd"
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/HTTPValidationError"
-  "/api/v1/token":
+  "/api/v1/users/token":
     post:
       tags:
-      - Авторизация
-      summary: Получение токена
-      operationId: login_for_access_token_api_v1_token_post
+      - Пользователи
+      summary: Получение токена для пользователей
+      operationId: login_for_user_access_token_api_v1_users_token_post
       requestBody:
         content:
           application/json:
@@ -55,7 +55,7 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/HTTPValidationError"
-  "/api/v1/users/orders":
+  "/api/v1/users/orders/get":
     get:
       tags:
       - Пользователи
@@ -64,7 +64,7 @@ paths:
         По умолчанию выводятся все заказы пользователя, но вы можете передать параметр запроса «active»,
         что-бы получить список только активных заказов, у которых статус заказа находится в
         состоянии «Поиск курьера» или «В пути».
-      operationId: get_user_orders_api_v1_users_orders_get
+      operationId: get_user_orders_api_v1_users_orders_get_get
       security:
       - OAuth2PasswordBearer: []
       parameters:
@@ -87,7 +87,7 @@ paths:
                 type: array
                 items:
                   "$ref": "#/components/schemas/BaseOrderPyd"
-                title: Response Get User Orders Api V1 Users Orders Get
+                title: Response Get User Orders Api V1 Users Orders Get Get
         '422':
           description: Validation Error
           content:
@@ -195,7 +195,7 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/CreateRestaurantPyd"
+              "$ref": "#/components/schemas/DetailedRestaurantInfoPyd"
         required: true
       responses:
         '200':
@@ -210,8 +210,6 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/HTTPValidationError"
-      security:
-      - OAuth2PasswordBearer: []
   "/api/v1/restaurants/{restaurant_id}/orders":
     get:
       tags:
@@ -222,8 +220,6 @@ paths:
         что-бы получить список только активных заказов, у которых статус заказа находится в
         состоянии «Поиск курьера» или «В пути».
       operationId: get_restaurant_orders_api_v1_restaurants__restaurant_id__orders_get
-      security:
-      - OAuth2PasswordBearer: []
       parameters:
       - name: restaurant_id
         in: path
@@ -267,8 +263,6 @@ paths:
       summary: Информация о заказе
       description: Подробная информация об одном выбранном заказе ресторана.
       operationId: get_restaurant_order_api_v1_restaurants__restaurant_id__orders__order_id__get
-      security:
-      - OAuth2PasswordBearer: []
       parameters:
       - name: restaurant_id
         in: path
@@ -299,6 +293,116 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/HTTPValidationError"
+  "/api/v1/couriers":
+    post:
+      tags:
+      - Курьеры
+      summary: Регистрация курьера
+      operationId: register_couriers_api_v1_couriers_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CreateCourierPyd"
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/UserInfoPyd"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/api/v1/couriers/token":
+    post:
+      tags:
+      - Курьеры
+      summary: Получение токена для курьеров
+      operationId: login_for_courier_access_token_api_v1_couriers_token_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CreateTokenPyd"
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ResponseTokenPyd"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/api/v1/couriers/available_orders":
+    get:
+      tags:
+      - Курьеры
+      summary: Свободные заказы
+      description: Выводим список всех заказов, из всех рестаранов, которые могут
+        взять курьеры.
+      operationId: available_couriers_orders_api_v1_couriers_available_orders_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  "$ref": "#/components/schemas/CourierOrdersInfoPyd"
+                type: array
+                title: Response Available Couriers Orders Api V1 Couriers Available
+                  Orders Get
+      security:
+      - OAuth2PasswordBearer: []
+  "/api/v1/couriers/orders/get":
+    get:
+      tags:
+      - Курьеры
+      summary: Заказы курьера
+      description: |-
+        По умолчанию выводятся только активные заказы курьера, у которых статус
+        заказа «В пути». Но вы можете передать параметр запроса «all»,
+        что-бы получить список всех заказов, которые выполнял/выполняет курьер.
+      operationId: courier_orders_api_v1_couriers_orders_get_get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: all
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Выводим все заказы курьера.
+          title: All
+        description: Выводим все заказы курьера.
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/CourierOrdersInfoPyd"
+                title: Response Courier Orders Api V1 Couriers Orders Get Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
 components:
   schemas:
     BaseOrderPyd:
@@ -306,7 +410,7 @@ components:
         id:
           type: integer
           title: Id
-          description: ID объекта в БД
+          description: ID заказа в БД
         status:
           type: string
           title: Status
@@ -335,7 +439,147 @@ components:
             - status: str
             - start_time: datetime
             - restaurant_id: int
-    CreateRestaurantPyd:
+    CourierOrdersInfoPyd:
+      properties:
+        id:
+          type: integer
+          title: Id
+          description: ID заказа в БД
+        status:
+          type: string
+          title: Status
+          description: Статус заказа
+        start_time:
+          type: string
+          format: date-time
+          title: Start Time
+          description: Время создания заказа
+        restaurant:
+          allOf:
+          - "$ref": "#/components/schemas/DetailedRestaurantInfoPyd"
+          description: Ресторан из которого сделан заказ
+        user:
+          allOf:
+          - "$ref": "#/components/schemas/DetailedUserInfoPyd"
+          description: Пользователь который сделал заказ
+      type: object
+      required:
+      - id
+      - status
+      - start_time
+      - restaurant
+      - user
+      title: CourierOrdersInfoPyd
+      description: Pydantic модель для вывода информации о заказе для курьера.
+    CreateCourierPyd:
+      properties:
+        phone_number:
+          type: string
+          title: Phone Number
+          description: Номер телефона
+        name:
+          type: string
+          title: Name
+          description: Имя
+        surname:
+          type: string
+          title: Surname
+          description: Фамилия
+        password:
+          type: string
+          title: Password
+          description: Пароль курьера
+      type: object
+      required:
+      - phone_number
+      - name
+      - surname
+      - password
+      title: CreateCourierPyd
+      description: |-
+        Pydantic модель для регистрации курьера.
+
+        Fields:
+            - phone_number: str
+            - name: str
+            - surname: str
+            - status: str
+            - password: str
+    CreateTokenPyd:
+      properties:
+        phone_number:
+          type: string
+          title: Phone Number
+          description: Номер телефона
+        password:
+          type: string
+          title: Password
+          description: Пароль для входа
+      type: object
+      required:
+      - phone_number
+      - password
+      title: CreateTokenPyd
+      description: |-
+        Pydantic модель для создания токена.
+
+        Fields:
+            - phone_number: str
+            - password: str
+    CreateUserPyd:
+      properties:
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Город
+          default: Тюмень
+        street:
+          type: string
+          title: Street
+          description: Улица
+        house_number:
+          type: string
+          title: House Number
+          description: Номер дома
+        phone_number:
+          type: string
+          title: Phone Number
+          description: Номер телефона
+        name:
+          type: string
+          title: Name
+          description: Имя
+        surname:
+          type: string
+          title: Surname
+          description: Фамилия
+        password:
+          type: string
+          title: Password
+          description: Пароль пользователя
+      type: object
+      required:
+      - street
+      - house_number
+      - phone_number
+      - name
+      - surname
+      - password
+      title: CreateUserPyd
+      description: |-
+        Pydantic модель для регистрации пользователя.
+
+        Fields:
+            - city: Optional[str]
+            - street: str
+            - house_number: str
+            - phone_number: str
+            - name: str
+            - surname: str
+            - password: str
+    DetailedRestaurantInfoPyd:
       properties:
         city:
           anyOf:
@@ -378,9 +622,9 @@ components:
       - opening_time
       - closing_time
       - duration_delivery
-      title: CreateRestaurantPyd
+      title: DetailedRestaurantInfoPyd
       description: |-
-        Pydantic модель для создания ресторана.
+        Pydantic модель для создания/получения подробной информации ресторана.
 
         Fields:
             - name: str
@@ -390,86 +634,12 @@ components:
             - city: Optional[str]
             - street: str
             - house_number: str
-    CreateTokenPyd:
-      properties:
-        phone_number:
-          type: string
-          title: Phone Number
-          description: Телефон пользователя
-        password:
-          type: string
-          title: Password
-          description: Пароль пользователя
-      type: object
-      required:
-      - phone_number
-      - password
-      title: CreateTokenPyd
-      description: |-
-        Pydantic модель для создания токена.
-
-        Fields:
-            - phone_number: str
-            - password: str
-    CreateUserPyd:
-      properties:
-        city:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: City
-          description: Город
-          default: Тюмень
-        street:
-          type: string
-          title: Street
-          description: Улица
-        house_number:
-          type: string
-          title: House Number
-          description: Номер дома
-        phone_number:
-          type: string
-          title: Phone Number
-          description: Телефон пользователя
-        name:
-          type: string
-          title: Name
-          description: Имя пользователя
-        surname:
-          type: string
-          title: Surname
-          description: Фамилия пользователя
-        password:
-          type: string
-          title: Password
-          description: Пароль пользователя
-      type: object
-      required:
-      - street
-      - house_number
-      - phone_number
-      - name
-      - surname
-      - password
-      title: CreateUserPyd
-      description: |-
-        Pydantic модель для регистрации пользователя.
-
-        Fields:
-            - city: Optional[str]
-            - street: str
-            - house_number: str
-            - phone_number: str
-            - name: str
-            - surname: str
-            - password: str
     DetailedRestaurantOrderPyd:
       properties:
         id:
           type: integer
           title: Id
-          description: ID объекта в БД
+          description: ID заказа в БД
         status:
           type: string
           title: Status
@@ -492,7 +662,7 @@ components:
           description: Время завершения доставки
         courier:
           anyOf:
-          - "$ref": "#/components/schemas/ResponseUserPyd"
+          - "$ref": "#/components/schemas/UserInfoPyd"
           - type: 'null'
           description: Курьер
         user:
@@ -516,7 +686,7 @@ components:
             - start_time: datetime
             - restaurant_id: int
             - end_time: Optional[datetime]
-            - courier: Optional[ResponseUserPyd]
+            - courier: Optional[UserInfoPyd]
             - user: DetailedUserInfoPyd
     DetailedUserInfoPyd:
       properties:
@@ -538,19 +708,19 @@ components:
         phone_number:
           type: string
           title: Phone Number
-          description: Телефон пользователя
+          description: Номер телефона
         name:
           type: string
           title: Name
-          description: Имя пользователя
+          description: Имя
         surname:
           type: string
           title: Surname
-          description: Фамилия пользователя
+          description: Фамилия
         id:
           type: integer
           title: Id
-          description: ID объекта в БД
+          description: ID пользователя в БД
       type: object
       required:
       - street
@@ -576,7 +746,7 @@ components:
         id:
           type: integer
           title: Id
-          description: ID объекта в БД
+          description: ID заказа в БД
         status:
           type: string
           title: Status
@@ -640,7 +810,7 @@ components:
         id:
           type: integer
           title: Id
-          description: ID объекта в БД
+          description: ID ресторана в БД
         name:
           type: string
           title: Name
@@ -686,7 +856,7 @@ components:
         id:
           type: integer
           title: Id
-          description: ID объекта в БД
+          description: ID заказа в БД
         status:
           type: string
           title: Status
@@ -717,39 +887,6 @@ components:
             - start_time: datetime
             - restaurant_id: int
             - shipping_cost: int
-    ResponseUserPyd:
-      properties:
-        phone_number:
-          type: string
-          title: Phone Number
-          description: Телефон пользователя
-        name:
-          type: string
-          title: Name
-          description: Имя пользователя
-        surname:
-          type: string
-          title: Surname
-          description: Фамилия пользователя
-        id:
-          type: integer
-          title: Id
-          description: ID объекта в БД
-      type: object
-      required:
-      - phone_number
-      - name
-      - surname
-      - id
-      title: ResponseUserPyd
-      description: |-
-        Pydantic модель для вывода информации о пользователе.
-
-        Fields:
-            - id: int
-            - phone_number: str
-            - name: str
-            - surname: str
     ShippingCostPyd:
       properties:
         shipping_cost:
@@ -770,7 +907,7 @@ components:
         id:
           type: integer
           title: Id
-          description: ID объекта в БД
+          description: ID заказа в БД
         status:
           type: string
           title: Status
@@ -812,6 +949,39 @@ components:
             - restaurant_id: int
             - courier_id: Optional[int]
             - user_id: int
+    UserInfoPyd:
+      properties:
+        phone_number:
+          type: string
+          title: Phone Number
+          description: Номер телефона
+        name:
+          type: string
+          title: Name
+          description: Имя
+        surname:
+          type: string
+          title: Surname
+          description: Фамилия
+        id:
+          type: integer
+          title: Id
+          description: ID объекта в БД
+      type: object
+      required:
+      - phone_number
+      - name
+      - surname
+      - id
+      title: UserInfoPyd
+      description: |-
+        Pydantic модель для вывода информации о пользователе/курьере.
+
+        Fields:
+            - id: int
+            - phone_number: str
+            - name: str
+            - surname: str
     ValidationError:
       properties:
         loc:
