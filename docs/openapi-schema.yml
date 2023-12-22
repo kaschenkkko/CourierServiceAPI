@@ -18,7 +18,7 @@ paths:
               "$ref": "#/components/schemas/CreateUserPyd"
         required: true
       responses:
-        '200':
+        '201':
           description: Successful Response
           content:
             application/json:
@@ -173,7 +173,7 @@ paths:
           title: Restaurant Id
         description: ID ресторана
       responses:
-        '200':
+        '201':
           description: Successful Response
           content:
             application/json:
@@ -198,7 +198,7 @@ paths:
               "$ref": "#/components/schemas/DetailedRestaurantInfoPyd"
         required: true
       responses:
-        '200':
+        '201':
           description: Successful Response
           content:
             application/json:
@@ -306,7 +306,7 @@ paths:
               "$ref": "#/components/schemas/CreateCourierPyd"
         required: true
       responses:
-        '200':
+        '201':
           description: Successful Response
           content:
             application/json:
@@ -364,20 +364,20 @@ paths:
                   Orders Get
       security:
       - OAuth2PasswordBearer: []
-  "/api/v1/couriers/orders/get":
+  "/api/v1/couriers/orders":
     get:
       tags:
       - Курьеры
       summary: Заказы курьера
       description: |-
-        По умолчанию выводятся только активные заказы курьера, у которых статус
-        заказа «В пути». Но вы можете передать параметр запроса «all»,
+        По умолчанию выводится только активный заказ курьера, у которого статус
+        заказа «В пути». Но вы можете передать параметр запроса «all_orders»,
         что-бы получить список всех заказов, которые выполнял/выполняет курьер.
-      operationId: courier_orders_api_v1_couriers_orders_get_get
+      operationId: courier_orders_api_v1_couriers_orders_get
       security:
       - OAuth2PasswordBearer: []
       parameters:
-      - name: all
+      - name: all_orders
         in: query
         required: false
         schema:
@@ -385,7 +385,7 @@ paths:
           - type: string
           - type: 'null'
           description: Выводим все заказы курьера.
-          title: All
+          title: All Orders
         description: Выводим все заказы курьера.
       responses:
         '200':
@@ -396,7 +396,60 @@ paths:
                 type: array
                 items:
                   "$ref": "#/components/schemas/CourierOrdersInfoPyd"
-                title: Response Courier Orders Api V1 Couriers Orders Get Get
+                title: Response Courier Orders Api V1 Couriers Orders Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/api/v1/couriers/orders/{order_id}":
+    post:
+      tags:
+      - Курьеры
+      summary: Взять заказ
+      description: Курьер берёт в работу выбранный заказ.
+      operationId: courier_accepts_order_api_v1_couriers_orders__order_id__post
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          description: ID заказа
+          title: Order Id
+        description: ID заказа
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+    put:
+      tags:
+      - Курьеры
+      summary: Завершить заказ
+      description: Курьер завершает выбранный заказ.
+      operationId: courier_completes_order_api_v1_couriers_orders__order_id__put
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          description: ID заказа
+          title: Order Id
+        description: ID заказа
+      responses:
+        '204':
+          description: Successful Response
         '422':
           description: Validation Error
           content:

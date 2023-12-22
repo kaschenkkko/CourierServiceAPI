@@ -1,10 +1,12 @@
-from datetime import time
+from datetime import datetime, time
 from typing import List, Optional
 
+import pytz
 from fastapi import HTTPException, status
 from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.configs import TIMEZONE
 from src.users.security import get_password_hash
 
 from .models import Courier, Order, Restaurant
@@ -178,28 +180,113 @@ async def get_all_available_couriers_orders(db: AsyncSession) -> Optional[List[O
     return active_orders.scalars().all()
 
 
-async def get_all_active_couriers_orders(
-        db: AsyncSession, current_courier: Courier
-) -> Optional[List[Order]]:
-    """Все активные заказы для курьера.
+async def get_active_courier_order(
+        db: AsyncSession,
+        current_courier: Courier
+) -> List[Optional[Order]]:
+    """Активный заказ для курьера.
 
-    Получаем объекты из таблицы SQLAlchemy «Order», для текущего курьера,
-    у которых статус заказа находится в состоянии «В пути».
+    Получаем объект из таблицы SQLAlchemy «Order», для текущего курьера,
+    у которого статус заказа находится в состоянии «В пути».
 
     Args:
         - current_courier (Courier): Объект курьера.
         - db (AsyncSession): Асинхронная сессия для подключения к БД.
 
     Returns:
-        - Optional[List[Order]]: Список активных заказов, если найдены, иначе None.
+        - Optional[Order]: Активный заказ, если найден, иначе None.
     """
 
-    courier_orders = await db.execute(
+    courier_order = await db.execute(
         select(Order).
         filter(
             Order.courier_id == current_courier.id,
             Order.status == 'В пути'
             ).
-        order_by(Order.id)
+        order_by(desc(Order.id))
     )
-    return courier_orders.scalars().all()
+    return courier_order.scalars().all()
+
+
+async def post_active_courier_order_by_id(
+        db: AsyncSession,
+        current_courier: Courier,
+        order_id: int
+) -> None:
+    """Обрабатываем запрос на взятие заказа в работу.
+
+    - Получаем выбранный курьером заказ, меняем статус заказа на статус «В пути»
+    и добавляем объект курьера в данный заказ.
+    - Меняем статус работы курьера на статус «Выполняет заказ».
+
+    Args:
+        - current_courier (Courier): Объект курьера.
+        - db (AsyncSession): Асинхронная сессия для подключения к БД.
+        - order_id (int): ID заказа.
+    """
+
+    courier_order = await db.execute(
+        select(Order).
+        filter(
+            Order.status == 'Поиск курьера',
+            Order.id == order_id
+        )
+    )
+    courier_order: Optional[Order] = courier_order.scalars().one_or_none()
+
+    if not courier_order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Заказ с таким ID не найден.'
+        )
+
+    courier_order.status = 'В пути'
+    courier_order.courier_id = current_courier.id
+    current_courier.status = 'Выполняет заказ'
+
+    await db.commit()
+    await db.refresh(courier_order)
+    await db.refresh(current_courier)
+
+
+async def put_active_courier_order_by_id(
+        db: AsyncSession,
+        current_courier: Courier,
+        order_id: int
+) -> None:
+    """Обрабатываем запрос на завершение заказа.
+
+    - Получаем выбранный курьером заказ, меняем статус заказа на статус «Доставлен»,
+    добавляем текущее время в поле «end_time».
+    - Меняем статус работы курьера на статус «Без заказа».
+
+    Args:
+        - current_courier (Courier): Объект курьера.
+        - db (AsyncSession): Асинхронная сессия для подключения к БД.
+        - order_id (int): ID заказа.
+    """
+
+    courier_order = await db.execute(
+        select(Order).
+        filter(
+            Order.courier_id == current_courier.id,
+            Order.status == 'В пути',
+            Order.id == order_id
+        )
+    )
+
+    courier_order: Optional[Order] = courier_order.scalars().one_or_none()
+
+    if not courier_order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Заказ с таким ID не найден.'
+        )
+
+    courier_order.status = 'Доставлен'
+    courier_order.end_time = datetime.now(pytz.timezone(TIMEZONE)).replace(microsecond=0)
+    current_courier.status = 'Без заказа'
+
+    await db.commit()
+    await db.refresh(courier_order)
+    await db.refresh(current_courier)

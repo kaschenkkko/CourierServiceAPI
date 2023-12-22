@@ -36,7 +36,8 @@ class Courier(Base, UserDataMixin):
         server_default='Без заказа', comment='Статус работы курьера', nullable=False
     )
 
-    orders = relationship('Order', back_populates='courier', lazy='selectin')
+    orders = relationship('Order', back_populates='courier',
+                          lazy='selectin',  order_by='Order.id.desc()')
 
 
 class Order(Base):
@@ -53,7 +54,7 @@ class Order(Base):
         DateTime, comment='Время начала доставки', nullable=False,
         server_default=text(f"date_trunc('second', (now() at time zone '{TIMEZONE}'))")
     )
-    end_time = Column(DateTime, comment='Время завершения доставки')
+    end_time = Column(DateTime(timezone=True), comment='Время завершения доставки')
     restaurant_id = Column(Integer, ForeignKey('restaurants.id'), comment='ID ресторана', nullable=False)
     courier_id = Column(Integer, ForeignKey('couriers.id'), comment='ID курьера')
     user_id = Column(Integer, ForeignKey('users.id'), comment='ID пользователя', nullable=False)

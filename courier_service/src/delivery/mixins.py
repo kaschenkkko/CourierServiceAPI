@@ -45,7 +45,7 @@ class UserDataMixin:
 
     __table_args__ = (
         CheckConstraint(
-            "phone_number ~ '^((8|\\+7)[\\- ]?)?(\\(?\\d{3}\\)?[\\- ]?)?[\\d\\- ]{7,10}$'",
+            "phone_number ~ '^((\\+7|7|8)+([0-9]){10})$'",
             name='check_phone_number'
         ),
     )

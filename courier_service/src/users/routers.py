@@ -20,7 +20,7 @@ from .security import create_access_token
 user_router = APIRouter()
 
 
-@user_router.post('/api/v1/users', response_model=UserInfoPyd,
+@user_router.post('/api/v1/users', response_model=UserInfoPyd, status_code=201,
                   summary='Регистрация пользователя/покупателя', tags=['Пользователи'])
 async def register_user(user: CreateUserPyd, db: AsyncSession = Depends(get_db)) -> User:
 
@@ -123,7 +123,7 @@ async def shipping_cost(
 
 
 @user_router.post('/api/v1/users/orders/post/{restaurant_id}', response_model=ResponseUserCreateOrderPyd,
-                  summary='Сделать заказ', tags=['Пользователи'])
+                  summary='Сделать заказ', tags=['Пользователи'], status_code=201)
 async def new_order(
     restaurant_id: int = Path(..., description='ID ресторана'),
     current_user: User = Depends(get_current_user),

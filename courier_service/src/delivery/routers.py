@@ -8,11 +8,12 @@ from src.users.models import User
 from src.users.schemas import CreateTokenPyd, ResponseTokenPyd, UserInfoPyd
 from src.users.security import create_access_token
 
-from .crud import (create_courier, get_active_restaurant_orders,
-                   get_all_active_couriers_orders,
+from .crud import (create_courier, get_active_courier_order,
+                   get_active_restaurant_orders,
                    get_all_available_couriers_orders,
                    get_courier_by_phone_number, get_order_by_id,
-                   get_restaurant_by_id, post_restaurant)
+                   get_restaurant_by_id, post_active_courier_order_by_id,
+                   post_restaurant, put_active_courier_order_by_id)
 from .exceptions import raise_forbidden_if_not_courier
 from .models import Courier, Order, Restaurant
 from .schemas import (CourierOrdersInfoPyd, CreateCourierPyd,
@@ -23,7 +24,7 @@ delivery_router = APIRouter()
 
 
 @delivery_router.post('/api/v1/restaurants', response_model=ResponseRestaurantPyd,
-                      summary='Добавить ресторан', tags=['Рестораны'])
+                      summary='Добавить ресторан', tags=['Рестораны'],  status_code=201)
 async def create_restaurant(
     restaurant: DetailedRestaurantInfoPyd,
     db: AsyncSession = Depends(get_db),
@@ -96,7 +97,7 @@ async def get_restaurant_order(
     return result
 
 
-@delivery_router.post('/api/v1/couriers', response_model=UserInfoPyd,
+@delivery_router.post('/api/v1/couriers', response_model=UserInfoPyd,  status_code=201,
                       summary='Регистрация курьера', tags=['Курьеры'])
 async def register_couriers(
     courier: CreateCourierPyd,
@@ -140,19 +141,50 @@ async def available_couriers_orders(
     return await get_all_available_couriers_orders(db)
 
 
-@delivery_router.get('/api/v1/couriers/orders/get', response_model=List[CourierOrdersInfoPyd],
+@delivery_router.get('/api/v1/couriers/orders',
+                     response_model=List[CourierOrdersInfoPyd],
                      summary='Заказы курьера', tags=['Курьеры'])
 async def courier_orders(
     current_courier: Courier = Depends(get_current_courier),
     db: AsyncSession = Depends(get_db),
-    all: Optional[str] = Query(None, description='Выводим все заказы курьера.')
-) -> Optional[List[Order]]:
+    all_orders: Optional[str] = Query(None, description='Выводим все заказы курьера.')
+) -> List[Optional[Order]]:
     """
-    По умолчанию выводятся только активные заказы курьера, у которых статус
-    заказа «В пути». Но вы можете передать параметр запроса «all»,
+    По умолчанию выводится только активный заказ курьера, у которого статус
+    заказа «В пути». Но вы можете передать параметр запроса «all_orders»,
     что-бы получить список всех заказов, которые выполнял/выполняет курьер.
     """
 
-    if all is not None:
+    if all_orders is not None:
         return current_courier.orders
-    return await get_all_active_couriers_orders(db, current_courier)
+    return await get_active_courier_order(db, current_courier)
+
+
+@delivery_router.post('/api/v1/couriers/orders/{order_id}', status_code=204,
+                      summary='Взять заказ', tags=['Курьеры'])
+async def courier_accepts_order(
+    current_courier: Courier = Depends(get_current_courier),
+    db: AsyncSession = Depends(get_db),
+    order_id: int = Path(..., description='ID заказа'),
+) -> None:
+    """Курьер берёт в работу выбранный заказ."""
+
+    if await get_active_courier_order(db, current_courier):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='У вас уже есть один заказ.',
+        )
+
+    await post_active_courier_order_by_id(db, current_courier, order_id)
+
+
+@delivery_router.put('/api/v1/couriers/orders/{order_id}', status_code=204,
+                     summary='Завершить заказ', tags=['Курьеры'])
+async def courier_completes_order(
+    current_courier: Courier = Depends(get_current_courier),
+    db: AsyncSession = Depends(get_db),
+    order_id: int = Path(..., description='ID заказа'),
+) -> None:
+    """Курьер завершает выбранный заказ."""
+
+    await put_active_courier_order_by_id(db, current_courier, order_id)

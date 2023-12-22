@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: f9c92374e98a
+Revision ID: a07201056567
 Revises: 
-Create Date: 2023-12-21 09:34:48.308427
+Create Date: 2023-12-22 14:06:23.666907
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'f9c92374e98a'
+revision: str = 'a07201056567'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,7 +27,7 @@ def upgrade() -> None:
     sa.Column('surname', sa.String(), nullable=False),
     sa.Column('phone_number', sa.String(), nullable=False),
     sa.Column('hashed_password', sa.String(), nullable=False),
-    sa.CheckConstraint("phone_number ~ '^((8|\\+7)[\\- ]?)?(\\(?\\d{3}\\)?[\\- ]?)?[\\d\\- ]{7,10}$'", name='check_phone_number'),
+    sa.CheckConstraint("phone_number ~ '^((\\+7|7|8)+([0-9]){10})$'", name='check_phone_number'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('phone_number')
     )
@@ -55,7 +55,7 @@ def upgrade() -> None:
     sa.Column('surname', sa.String(), nullable=False),
     sa.Column('phone_number', sa.String(), nullable=False),
     sa.Column('hashed_password', sa.String(), nullable=False),
-    sa.CheckConstraint("phone_number ~ '^((8|\\+7)[\\- ]?)?(\\(?\\d{3}\\)?[\\- ]?)?[\\d\\- ]{7,10}$'", name='check_phone_number'),
+    sa.CheckConstraint("phone_number ~ '^((\\+7|7|8)+([0-9]){10})$'", name='check_phone_number'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('phone_number')
     )
@@ -64,7 +64,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('status', sa.Enum('Поиск курьера', 'В пути', 'Доставлен', name='delivery_status'), server_default='Поиск курьера', nullable=False, comment='Статус доставки'),
     sa.Column('start_time', sa.DateTime(), server_default=sa.text("date_trunc('second', (now() at time zone 'Asia/Yekaterinburg'))"), nullable=False, comment='Время начала доставки'),
-    sa.Column('end_time', sa.DateTime(), nullable=True, comment='Время завершения доставки'),
+    sa.Column('end_time', sa.DateTime(timezone=True), nullable=True, comment='Время завершения доставки'),
     sa.Column('restaurant_id', sa.Integer(), nullable=False, comment='ID ресторана'),
     sa.Column('courier_id', sa.Integer(), nullable=True, comment='ID курьера'),
     sa.Column('user_id', sa.Integer(), nullable=False, comment='ID пользователя'),
