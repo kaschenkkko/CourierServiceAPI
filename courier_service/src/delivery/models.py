@@ -51,7 +51,7 @@ class Order(Base):
         server_default='Поиск курьера', comment='Статус доставки', nullable=False, index=True
     )
     start_time = Column(
-        DateTime, comment='Время начала доставки', nullable=False,
+        DateTime, comment='Время создания заказа', nullable=False,
         server_default=text(f"date_trunc('second', (now() at time zone '{TIMEZONE}'))")
     )
     end_time = Column(DateTime(timezone=True), comment='Время завершения доставки')

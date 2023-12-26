@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: a07201056567
+Revision ID: ccf1f5b4df6c
 Revises: 
-Create Date: 2023-12-22 14:06:23.666907
+Create Date: 2023-12-25 09:29:19.338063
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'a07201056567'
+revision: str = 'ccf1f5b4df6c'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -63,7 +63,7 @@ def upgrade() -> None:
     op.create_table('orders',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('status', sa.Enum('Поиск курьера', 'В пути', 'Доставлен', name='delivery_status'), server_default='Поиск курьера', nullable=False, comment='Статус доставки'),
-    sa.Column('start_time', sa.DateTime(), server_default=sa.text("date_trunc('second', (now() at time zone 'Asia/Yekaterinburg'))"), nullable=False, comment='Время начала доставки'),
+    sa.Column('start_time', sa.DateTime(), server_default=sa.text("date_trunc('second', (now() at time zone 'Asia/Yekaterinburg'))"), nullable=False, comment='Время создания заказа'),
     sa.Column('end_time', sa.DateTime(timezone=True), nullable=True, comment='Время завершения доставки'),
     sa.Column('restaurant_id', sa.Integer(), nullable=False, comment='ID ресторана'),
     sa.Column('courier_id', sa.Integer(), nullable=True, comment='ID курьера'),
