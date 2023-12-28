@@ -101,7 +101,6 @@ def setup_admin(app, engine):
             Order.user_id,
         ]
 
-
     admin.add_view(UserAdmin)
     admin.add_view(RestaurantAdmin)
     admin.add_view(CourierAdmin)
