@@ -13,3 +13,6 @@ POSTGRES_USER = os.environ.get('POSTGRES_USER')
 POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
 TIMEZONE = os.environ.get('TIMEZONE')
 SECRET_KEY = os.environ.get('SECRET_KEY')
+
+DB_HOST_TEST = os.environ.get('DB_HOST_TEST')
+DB_PORT_TEST = os.environ.get('DB_PORT_TEST')

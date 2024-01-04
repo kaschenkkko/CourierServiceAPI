@@ -24,12 +24,24 @@ services:
     env_file:
       - ./.env
 
+  test_db:
+    container_name: test_postgresql_db
+    image: postgres:13.0-alpine
+    restart: always
+    ports:
+      - "6000:5432"
+    volumes:
+      - test_database:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+
   backend:
     container_name: backend
     build: ../courier_service/
     restart: always
     depends_on:
       - db
+      - test_db
     env_file:
       - ./.env
 
@@ -46,3 +58,4 @@ services:
 
 volumes:
   database:
+  test_database:

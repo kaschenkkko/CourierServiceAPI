@@ -24,7 +24,7 @@ user_router = APIRouter()
                   summary='Регистрация пользователя/покупателя', tags=['Пользователи'])
 async def register_user(user: CreateUserPyd, db: AsyncSession = Depends(get_db)) -> User:
 
-    user_data = user.dict()
+    user_data = user.model_dump()
 
     return await create_user(db=db, **user_data)
 

@@ -44,18 +44,23 @@ Courier Service - [API redoc](https://clownvkkaschenko.github.io/CourierServiceA
 
 - Клонируйте репозиторий.
 - Перейдите в папку **infra** и создайте в ней файл **.env** с переменными окружения:
-    ```
+  ```
   DB_HOST=db
   DB_PORT=5432
   DB_NAME=postgres
   POSTGRES_USER=postgres
-  POSTGRES_PASSWORD=postgres
+  POSTGRES_PASSWORD=admin1202
+
   TIMEZONE='Asia/Yekaterinburg'
+  SECRET_KEY=wersdaf2342asdf
   TZ='Asia/Yekaterinburg'
-  SECRET_KEY=secretsecret
+
   PGADMIN_DEFAULT_EMAIL=user@gmail.ru
   PGADMIN_DEFAULT_PASSWORD=user_password
-    ``` 
+
+  DB_HOST_TEST=db_test
+  DB_PORT_TEST=6000
+  ``` 
 - Из папки **infra** запустите docker-compose:
   ```
   ~$ docker-compose up -d --build
