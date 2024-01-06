@@ -30,7 +30,7 @@ async def create_restaurant(
     db: AsyncSession = Depends(get_db),
 ) -> Restaurant:
 
-    restaurant_data = restaurant.dict()
+    restaurant_data = restaurant.model_dump()
 
     return await post_restaurant(db=db, **restaurant_data)
 
@@ -104,7 +104,7 @@ async def register_couriers(
     db: AsyncSession = Depends(get_db)
 ) -> Courier:
 
-    courier_data = courier.dict()
+    courier_data = courier.model_dump()
 
     return await create_courier(db=db, **courier_data)
 

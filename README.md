@@ -49,7 +49,7 @@ Courier Service - [API redoc](https://clownvkkaschenko.github.io/CourierServiceA
   DB_PORT=5432
   DB_NAME=postgres
   POSTGRES_USER=postgres
-  POSTGRES_PASSWORD=admin1202
+  POSTGRES_PASSWORD=postgres
 
   TIMEZONE='Asia/Yekaterinburg'
   SECRET_KEY=wersdaf2342asdf

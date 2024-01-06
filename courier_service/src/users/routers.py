@@ -134,5 +134,5 @@ async def new_order(
     order_info: Order = await create_order(db, current_user.id, restaurant_id)
     shipping_cost_value: Dict[str, int] = await shipping_cost(restaurant_id, current_user, db)
 
-    result = ResponseUserCreateOrderPyd.parse_obj({**order_info.__dict__, **shipping_cost_value})
+    result = ResponseUserCreateOrderPyd.model_validate({**order_info.__dict__, **shipping_cost_value})
     return result
