@@ -52,14 +52,13 @@ Courier Service - [API redoc](https://clownvkkaschenko.github.io/CourierServiceA
   POSTGRES_PASSWORD=postgres
 
   TIMEZONE='Asia/Yekaterinburg'
-  SECRET_KEY=wersdaf2342asdf
+  SECRET_KEY=secretsecret
   TZ='Asia/Yekaterinburg'
 
   PGADMIN_DEFAULT_EMAIL=user@gmail.ru
   PGADMIN_DEFAULT_PASSWORD=user_password
 
   DB_HOST_TEST=db_test
-  DB_PORT_TEST=6000
   ``` 
 - Из папки **infra** запустите docker-compose:
   ```
@@ -68,6 +67,10 @@ Courier Service - [API redoc](https://clownvkkaschenko.github.io/CourierServiceA
 - В контейнере **backend** выполните миграции:
   ```
   ~$ docker-compose exec backend alembic upgrade head
+  ```
+- Для запуска тестов выполните команду:
+  ```
+  ~$ docker-compose exec backend pytest -v tests/
   ```
 
 Документация к API будет доступна по url-адресу [127.0.0.1/redoc](http://127.0.0.1/redoc)
