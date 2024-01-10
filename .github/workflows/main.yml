@@ -48,3 +48,4 @@ jobs:
         DB_HOST_TEST: ${{ secrets.DB_HOST_TEST }}
         DB_PORT: ${{ secrets.DB_PORT }}
         DB_NAME: ${{ secrets.DB_NAME }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
