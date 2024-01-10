@@ -42,4 +42,4 @@ jobs:
         python -m flake8 courier_service/tests/
     - name: Run Pytest
       run: |
-        pytest -v tests/
+        pytest -v courier_service/tests/

@@ -86,7 +86,7 @@ async def get_user_order(
     courier = user_order.courier
     courier_name: Optional[str] = user_order.courier.__dict__.get('name') if courier else None
 
-    result = DetailedUserOrderPyd(
+    return DetailedUserOrderPyd(
         id=user_order.id,
         status=user_order.status,
         restaurant_name=user_order.restaurant.__dict__.get('name'),
@@ -95,8 +95,6 @@ async def get_user_order(
         courier_name=courier_name,
         duration_delivery=user_order.restaurant.__dict__.get('duration_delivery'),
     )
-
-    return result
 
 
 @user_router.get('/api/v1/users/shipping_cost/{restaurant_id}', response_model=ShippingCostPyd,
@@ -134,5 +132,4 @@ async def new_order(
     order_info: Order = await create_order(db, current_user.id, restaurant_id)
     shipping_cost_value: Dict[str, int] = await shipping_cost(restaurant_id, current_user, db)
 
-    result = ResponseUserCreateOrderPyd.model_validate({**order_info.__dict__, **shipping_cost_value})
-    return result
+    return ResponseUserCreateOrderPyd.model_validate({**order_info.__dict__, **shipping_cost_value})

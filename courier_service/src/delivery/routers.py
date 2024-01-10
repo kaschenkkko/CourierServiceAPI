@@ -84,7 +84,7 @@ async def get_restaurant_order(
     courier: Courier = order.courier
     courier_data: Optional[Dict] = courier.__dict__ if courier else None
 
-    result = DetailedRestaurantOrderPyd(
+    return DetailedRestaurantOrderPyd(
         id=order.id,
         status=order.status,
         start_time=order.start_time,
@@ -93,8 +93,6 @@ async def get_restaurant_order(
         courier=courier_data,
         user=user.__dict__
     )
-
-    return result
 
 
 @delivery_router.post('/api/v1/couriers', response_model=UserInfoPyd,  status_code=201,
