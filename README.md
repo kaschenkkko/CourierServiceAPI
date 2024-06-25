@@ -8,7 +8,7 @@
 </div>
 
 # Документация API
-Courier Service - [API redoc](https://clownvkkaschenko.github.io/CourierServiceAPI/)
+Courier Service - [API redoc](https://kaschenkkko.github.io/CourierServiceAPI/)
 
 # Техническое задание проекта:
 
